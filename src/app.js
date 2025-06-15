@@ -1,26 +1,23 @@
 const express = require("express")
-
+const {adminAuth, userAuth} = require("./middlewares/auth")
 const app = express();
 const PORT = 5000;
 
-app.get("/user", (req, res) =>{
-    res.send({firstName:"Taniya", lastName:"Mittal"})
-})
-app.post("/user", (req,res)=>{
-    // save user in db
-    res.send("user saved successfully")
+
+app.use("/admin", adminAuth)
+
+app.get("/admin/allData", (req, res, next) =>{
+    res.send("All Data is Fetched")
 });
-app.patch("/user", (req,res)=>{
-    res.send("user updated successfully")
-})
-app.delete("/user", (req,res) => {
-  res.send("user deleted successfully")
+
+app.get("/user/userData",userAuth,(req,res)=>{
+    res.send(
+        "user data is fetched"
+    )
 })
 
 
-app.use("/test", (req, res)=>{
-   res.send("Here is dashbord")
-});
+
 
 app.listen(PORT, ()=>{
     console.log(`Server is Listining on ${PORT}`)
