@@ -1,27 +1,28 @@
 const express = require("express")
+const connectDB = require("./configs/database")
+const User = require("./models/user")
 const {adminAuth, userAuth} = require("./middlewares/auth")
 const app = express();
 const PORT = 5000;
 
+app.use(express.json());
 
-app.use("/admin", adminAuth)
-
-app.get("/admin/allData", (req,res,next) =>{
-        throw new Error("please contact support");
-});
-
-app.get("/user/userData",userAuth,(err,req,res,next)=>{
-    res.send(
-        "user data is fetched"
-    )
+app.post("/signup", async (req , res)=>{  
+ try{
+    const user = new User(req.body);
+    await user.save() 
+    res.send("user data Saved")
+ } catch(err){
+     res.status(400).send("Invalid Request", err.message)
+ }
 })
 
-app.use("/", (err,req,res,next) => {
-    res.status(500).send({ error: err.message });
-})
-
-
-
-app.listen(PORT, ()=>{
+connectDB()
+.then(()=>{
+    console.log("Database conenction established")
+    app.listen(PORT, ()=>{
     console.log(`Server is Listining on ${PORT}`)
+})
+}).catch(()=>{
+    console.error("Database can't be conencted")
 })
