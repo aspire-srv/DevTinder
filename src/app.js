@@ -17,6 +17,30 @@ app.post("/signup", async (req , res)=>{
  }
 })
 
+app.get("/user", async (req,res) =>{
+    try {
+        const user = await User.find({emailId : req.body.emailId})
+        if(user.length === 0){
+            res.send("User Not Found");
+        }
+        res.send(user)
+    } catch (err) {
+        res.status(500).send("Something Went Wrong")
+    }
+})
+
+// feed api- get all user
+app.get("/feed",async (req,res)=>{
+
+    try{
+    const users = await User.find({});
+        res.send(users)
+    } catch(err){
+        res.status(404).send("users Not found")
+    }
+
+})
+
 connectDB()
 .then(()=>{
     console.log("Database conenction established")
