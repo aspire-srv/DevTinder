@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+var validator = require('validator');
 
 const userSchema = new mongoose.Schema({
     firstName: {
@@ -19,22 +20,29 @@ const userSchema = new mongoose.Schema({
         unique: true,
         lowercase: true,
         trim: true,
-        match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address']
+        validate(value){
+            if(!validator.isEmail(value)){
+                throw new Error("Not a Valid Email "+ value);
+            }
+        }
     },
     password: {
         type: String,
         required: true,
         minlength: 8,
-        maxlength: 50
+        maxlength: 100,
+        validate(value){
+            if(!validator.isStrongPassword(value)){
+                throw new Error("Please enter a Strong Password"+ value);
+            }
+        }
     },
     age: {
         type: Number,
-        required: true,
         min: 18,
     },
     gender: {
         type: String,
-        required: true,
         validate(v){
             if(!["male","female","others"].includes(v)){
                 throw new Error("Not a Valid gender");  
@@ -57,7 +65,11 @@ const userSchema = new mongoose.Schema({
     avatar: {
         type: String,
         default: "https://www.w3schools.com/w3images/avatar6.png",
-        match: [/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg)$/, 'Please enter a valid image URL']
+        validate(value){
+            if(!validator.isURL(value)){
+                throw new Error("Not a Valid URL "+ value);
+            }
+        }
     }
 },{timestamps:true});
 
