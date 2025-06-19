@@ -1,81 +1,21 @@
 const express = require("express")
 const connectDB = require("./configs/database")
 const User = require("./models/user");
-const { validateSignupData } = require("./utils/validation.js")
-const bcrypt = require('bcrypt');
-const {userAuth} = require("./middlewares/auth");
 const cookieParser = require('cookie-parser')
-const JWT = require("jsonwebtoken")
+const { authRouter } = require("./routes/auth");
+const { requestRouter } = require("./routes/request")
+const { profileRouter } = require("./routes/profile")
 const app = express();
 const PORT = 5000;
 
 app.use(express.json());
 app.use(cookieParser());
 
-app.post("/signup", async (req ,res)=>{  
- try{
 
-    // validate req body
-    validateSignupData(req)
+app.use("/", authRouter);
+app.use("/", requestRouter);
+app.use("/", profileRouter);
 
-    // encrypt password
-    const {firstName, lastname, emailId, password } = req.body;
-    const passwordHash = await bcrypt.hash(password, 10)
-
-    const user = new User({
-        firstName,
-        lastname,
-        emailId,
-        password : passwordHash
-    });
-    await user.save() 
-    res.send("user data Saved")
- } catch(err){
-     res.status(400).send("Invalid Request " + err.message)
- }
-})
-
-app.post("/login", async (req ,res)=>{  
- try{
-
-    const { emailId, password } = req.body;
-
-    const user = await User.findOne({emailId:emailId})
-    if(!user) {
-        throw new Error("Invalid Creds");
-    } 
-       const isValidPassword = await bcrypt.compare(password, user.password)
-       if(isValidPassword){
-        const token = await JWT.sign({_id:user._id},"devTinder@76", { expiresIn: '7d' })
-            res.cookie("token",token, { expires: new Date(Date.now() + 900000)})
-            res.send("Login Successful!!!")
-       } else {
-            throw new Error("Invalid Creds");
-       }
-
- } catch(err){
-     res.status(400).send("Invalid Request " + err.message)
- }
-});
-
-app.get("/profile", userAuth, async (req, res)=>{
-    
-   try {    
-        const user = req.user
-        res.send(user);
-    } catch(err){
-     res.status(400).send("Error: " + err.message)
- }
-})
-app.post("/sendConnectionRequest", userAuth, async (req, res)=>{
-    
-   try {    
-        const user = req.user;
-        res.send(user.firstName +" sent a connection request");
-    } catch(err){
-     res.status(400).send("Error: " + err.message)
- }
-})
 
 app.get("/user", async (req, res) => {
     try {
