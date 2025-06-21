@@ -43,6 +43,9 @@ const userSchema = new mongoose.Schema({
         type: Number,
         min: 18,
     },
+    dateOfBirth: {
+        type: Date
+    },
     gender: {
         type: String,
         validate(v){

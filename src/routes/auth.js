@@ -2,6 +2,7 @@ const express = require("express");
 const { validateSignupData } = require("../utils/validation.js")
 const bcrypt = require('bcrypt');
 const User = require("../models/user");
+const { userAuth } = require("../middlewares/auth.js");
 const authRouter = express.Router();
 
 authRouter.post("/signup", async (req ,res)=>{  
@@ -11,13 +12,18 @@ authRouter.post("/signup", async (req ,res)=>{
     validateSignupData(req)
 
     // encrypt password
-    const {firstName, lastname, emailId, password } = req.body;
+    const {firstName, lastname, emailId, password,dateOfBirth} = req.body;
     const passwordHash = await bcrypt.hash(password, 10)
 
+    const inputDob = dateOfBirth; // DD-MM-YYYY from form
+    const [day, month, year] = inputDob.split("-");
+    const dobIso = new Date(`${day}-${month}-${year}`); // 1997-03-01
+   
     const user = new User({
         firstName,
         lastname,
         emailId,
+        dateOfBirth: dobIso, 
         password : passwordHash
     });
     await user.save() 
@@ -49,5 +55,18 @@ authRouter.post("/login", async (req ,res)=>{
      res.status(400).send("Invalid Request " + err.message)
  }
 });
+
+authRouter.post("/logout", userAuth, (req, res) =>{
+    try{
+        res.cookie("token", null, {
+        expires: new Date(Date.now())
+    })
+
+    res.json({message:`${req.user.firstName} you're logout successfully`, status: res.statusCode})
+    } catch(err){
+        res.status(400).json({ message: "Error " + err.message, status: 400 });
+    }
+   
+})
 
 module.exports =  { authRouter }
